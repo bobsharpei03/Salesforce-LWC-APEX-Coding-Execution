@@ -1,0 +1,57 @@
+{
+  "appPageId" : "78fd997e-3fda-4098-9dd8-af6359c32577",
+  "componentName" : "siteforce:sldsOneColLayout",
+  "dataProviders" : [ ],
+  "id" : "34e9911c-c181-41c0-bf55-64cff949214f",
+  "label" : "Home",
+  "regions" : [ {
+    "id" : "f56955ca-98d0-4e4d-9e4a-6d41c656c269",
+    "regionName" : "header",
+    "type" : "region"
+  }, {
+    "components" : [ {
+      "componentAttributes" : {
+        "richTextValue" : "<p><span style=\"font-size: 48px;\">Let's get started!</span></p><ol><li><span style=\"font-size: 18px;\">Unfamiliar with Build Your Own? Click Take a Tour in the Help menu.</span></li><li><span style=\"font-size: 18px;\">Want to add more pages? Take a look at the Pages menu.</span></li><li><span style=\"font-size: 18px;\">Want more components on your page? Drag and drop components from the Components panel.</span></li><li><span style=\"font-size: 18px;\">Want your users to see your company logo? Head on over to the Theme panel.</span></li><li><span style=\"font-size: 18px;\">Refine the look of your site with a custom theme layout. See the Experience Cloud Developer Guide.</span></li></ol>"
+      },
+      "componentName" : "forceCommunity:richTextInline",
+      "id" : "8dec3ece-e776-47d5-a76d-ef1dd69b21d2",
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    }, {
+      "componentAttributes" : {
+        "richTextValue" : "<p>Use this HTML Editor to add your own markup.</p>"
+      },
+      "componentName" : "forceCommunity:htmlBlock",
+      "id" : "fe391135-28c8-403a-b7cc-c5428ecea3f6",
+      "renderPriority" : "NEUTRAL",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "a94af535-2c1c-48cd-9b23-448d1855674d",
+    "regionName" : "content",
+    "type" : "region"
+  }, {
+    "id" : "91d7adf8-2bc4-4d52-8362-aefb38601cf9",
+    "regionName" : "footer",
+    "type" : "region"
+  }, {
+    "components" : [ {
+      "componentAttributes" : {
+        "customHeadTags" : "",
+        "description" : "",
+        "title" : "Home"
+      },
+      "componentName" : "forceCommunity:seoAssistant",
+      "id" : "237423fc-6d00-4462-b19a-d921c0dbc0cb",
+      "renditionMap" : { },
+      "type" : "component"
+    } ],
+    "id" : "7c239664-e3e4-4d14-8dae-564d5d8d7e86",
+    "regionName" : "sfdcHiddenRegion",
+    "type" : "region"
+  } ],
+  "themeLayoutType" : "Inner",
+  "type" : "view",
+  "viewType" : "home"
+}

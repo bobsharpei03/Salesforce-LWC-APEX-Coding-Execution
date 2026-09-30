@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
+
     <types>
-        <members>FSL.CustomGanttResourceAbsenceAction</members>
+        <members>wizardContainer</members>
+        <members>wizardStep1</members>
+        <members>wizardStep2</members>
+        <members>wizardStep3</members>
+        <members>wizardReview</members>
+        <!--<members>wizardProgressBar</members>-->
+        <name>LightningComponentBundle</name>
+    </types>
+
+    <types>
+        <members>WizardController</members>
         <name>ApexClass</name>
     </types>
-    <version>66.0</version>
+
+    <version>67.0</version>
 </Package>
