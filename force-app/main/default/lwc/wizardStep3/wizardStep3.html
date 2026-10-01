@@ -1,0 +1,29 @@
+<template>
+    <lightning-card title="Step 3 — Preferences" class="slds-p-around_medium">
+
+        <div class="slds-grid slds-wrap slds-gutters">
+            <div class="slds-col slds-size_1-of-1">
+                <lightning-textarea
+                    name="preferences"
+                    label="Preferences / Notes"
+                    value={preferences}
+                    onchange={handleChange}>
+                </lightning-textarea>
+            </div>
+        </div>
+
+        <div class="slds-m-top_large slds-text-align_space-between">
+            <lightning-button 
+                label="Back"
+                onclick={handleBack}>
+            </lightning-button>
+
+            <lightning-button 
+                variant="brand"
+                label="Next"
+                onclick={handleNext}>
+            </lightning-button>
+        </div>
+
+    </lightning-card>
+</template>

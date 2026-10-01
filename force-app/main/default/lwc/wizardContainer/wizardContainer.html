@@ -1,0 +1,44 @@
+<template>
+     <lightning-card title="LWC component that creates Multi-step records" class="slds-p-around_medium">
+    <div class="progress-container">
+        <!--<c-wizard-progress-bar current-step={currentStep}></c-wizard-progress-bar>-->
+    </div>
+
+    <div class="step-content">
+        <template if:true={isStep1}>
+            <c-wizard-step1 
+                step-data={step1Data}
+                onnext={handleNext}
+                onerror={handleError}>
+            </c-wizard-step1>
+        </template>
+
+        <template if:true={isStep2}>
+            <c-wizard-step2 
+                step-data={step2Data}
+                onnext={handleNext}
+                onback={handleBack}
+                onerror={handleError}>
+            </c-wizard-step2>
+        </template>
+
+        <template if:true={isStep3}>
+            <c-wizard-step3 
+                step-data={step3Data}
+                onnext={handleNext}
+                onback={handleBack}>
+            </c-wizard-step3>
+        </template>
+
+        <template if:true={isReview}>
+          <c-wizard-review
+            step1={step1}
+            step2={step2}
+            step3={step3}
+            onback={handleBack}
+            onsubmitwizard={handleSubmitWizard}>
+        </c-wizard-review>
+        </template>
+    </div>
+    </lightning-card>
+</template>

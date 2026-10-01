@@ -1,58 +1,78 @@
-# Salesforce DX Project
+# Salesforce DX Project Wizard Steps for creating an Account with related records using LWC
 
-Salesforce DX is a development approach that brings source-driven development, team collaboration, and continuous integration to the Salesforce Platform. Instead of working directly in an org through a web browser, you work with metadata as source files in a local DX project, track changes in version control, and deploy through automated processes.
+A polished, production-ready **multi-step wizard** built with Lightning Web Components (LWC), demonstrating best practices in Salesforce development — from component architecture and inter-component communication to Apex integration and clean UX patterns.
+---
 
-This project template gets you started with the tools and structure you need to build Salesforce applications using source control, scratch orgs, and the Salesforce CLI.
+## 📋 Purpose
 
-## Prerequisites
+This wizard guides users through a structured, three-step data-entry flow to create related Salesforce records — an **Account**, a **Contact**, and a **Preference** — in a single cohesive session. Rather than navigating across multiple pages or record forms, users progress through a guided experience with a final Review step before committing any data to the database.
 
-Before you start, make sure you have:
+The project serves as a **reference implementation** showcasing how to build complex, stateful, multi-screen flows in LWC without relying on Flow Builder, keeping full control over UX, validation logic, and data handling in code.
 
-- **Salesforce CLI** - Download from [developer.salesforce.com/tools/salesforcecli](https://developer.salesforce.com/tools/salesforcecli). See [Install Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_install_cli.htm) for details.
-- **VS Code with Salesforce Extension Pack** - See [Installation Instructions](https://developer.salesforce.com/docs/platform/sfvscode-extensions/guide/install.html) for details. Includes the Agentforce Vibes extension.
-- **A development org** - Sign up for a free Developer Edition org [here](https://developer.salesforce.com/signup).
-- **Dev Hub enabled** (optional, required to create scratch orgs) - You can enable Dev Hub in your development org under Setup > Dev Hub.  See [Provide Developers Access to Salesforce DX Tools](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_setup_dx_tools.htm).
+---
 
-## Project Structure
+## 🗂️ Project Structure
 
-Your DX project follows this structure:
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      wizardContainer                        │
+│                                                             │
+│   ┌────────┐    ┌────────┐    ┌────────────┐    ┌────────┐  │
+│   │ Step 1 │ →  │ Step 2 │ →  │  Step 3    │ →  │ Review │  │
+│   │Account │    │Contact │    │ Preference │    │        │  │
+│   └────────┘    └────────┘    └────────────┘    └───┬────┘  │
+│                                                     │       │
+│                                                     ▼       │
+│                                               Apex Call     │
+│                                                     │       │
+│                                                     ▼       │
+│                                          Success / Error    │
+│                                               Toast 🔔      │
+└─────────────────────────────────────────────────────────────┘
+```
 
-- **`force-app/main/default/`** - Your metadata source files live in this default package directory. You can configure additional package directories in the `sfdx-project.json` file.
-- **`config/`** - Scratch org definitions and project settings
-- **`scripts/`** - Automation scripts for common tasks
-- **`sfdx-project.json`** - Project manifest that defines package directories, namespace, API version, and other project-level settings
+```
+force-app/main/default/
+├── classes/
+│   ├── WizardController.cls          # Apex controller (entry point)
+│   └── WizardResult.cls              # DTO returned to the client
+└── lwc/
+├── wizardContainer/              # Orchestrator component
+├── wizardStep1/                  # Step 1 – Account
+├── wizardStep2/                  # Step 2 – Contact
+├── wizardStep3/                  # Step 3 – Preference (with category picklist)
+└── wizardReview/                 # Review & submit step
+```
 
-See [Salesforce DX Project Configuration](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm).
+Declared with sharing to respect org-level sharing rules
 
-## Get Started
+Single @AuraEnabled method accepts structured maps, decoupled from SObject fields — allowing the client payload shape to evolve independently
 
-Ready to start developing? The [Get Started with Salesforce DX](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_get_started_dx.htm) guide walks you through your first project, from creating a scratch org to creating a simple Apex class or LWC to deploying your code to a sandbox.
+Performs a unit-of-work pattern: inserts Account → Contact (with AccountId) → Preference (with ContactId) in order, with all-or-nothing rollback via a try/catch that populates the DTO error field
 
-## Common Salesforce CLI Commands
+Returns a WizardResult DTO rather than raw SObjects, giving the client a clean, versioned contract
 
-Here are common CLI commands that you'll use the most:
+```
+Data Transfer Object — WizardResult
 
-- `sf org login web`: Authorize an org
-- `sf org open`: Open your org in a browser
-- `sf org create scratch`: Create a scratch org
-- `sf project deploy start`: Deploy metadata to your org
-- `sf project retrieve start`: Retrieve metadata from your org
-- `sf template generate <artifact>`: Scaffold new components, such as Apex classes and triggers, LWC components, Lightning apps, and more
-- `sf apex <command>`: Run Apex tests, run anonymous Apex blocks, and view logs
-- `sf data <command>`: Work with test data
-- `sf alias <command>`: Manage org aliases
-- `sf config <command>`: Configure CLI settings
+public class WizardResult {
+    @AuraEnabled public Boolean success;
+    @AuraEnabled public String  message;
+    @AuraEnabled public Id      accountId;
+    @AuraEnabled public Id      contactId;
+    @AuraEnabled public Id      preferenceId;
+}
+```
+ I applied the following rules to this project:
 
-## Use Agentforce Vibes to Build Lightning Apps
-
-Transform your ideas into custom Lightning apps that extend CRM workflows directly in Lightning Experience. Through natural conversations with Agentforce Vibes, implement custom objects and fields, complex business logic, and dynamic UI components. See [Build a Lightning App Using Agentforce Vibes](https://developer.salesforce.com/docs/platform/einstein-for-devs/guide/lexapp-overview.html).
-
-## Additional Resources
-
-- [Agentforce Vibes Developer Guide](https://developer.salesforce.com/docs/platform/einstein-for-devs/guide/einstein-overview.html)
-- [Salesforce CLI Installation Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_intro.htm)
-- [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/)
-- [Salesforce CLI Command Reference](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/)
-- [Salesforce CLI Plugin Development Guide](https://developer.salesforce.com/docs/platform/salesforce-cli-plugin/guide/conceptual-overview.html)
-- [Salesforce VS Code Extensions Documentation](https://developer.salesforce.com/tools/vscode/)
-
+| Practice | Where Applied |
+| --- | --- |
+| `with sharing` on Apex | `WizardController` — enforces record-level security |
+| Single Apex callout per transaction | `wizardContainer` submits once; no per-step server calls |
+| DTO pattern | `WizardResult` decouples server/client contracts |
+| Unidirectional data flow | Parent-down props, child-up events; no sibling coupling |
+| Client-side validation | Each step validates before firing `nextstep` |
+| Bulkification-ready DML | Apex inserts are sequenced with proper ID chaining |
+| Component isolation | Step components have zero direct Apex dependencies |
+| LWC naming conventions | camelCase components, kebab-case in HTML templates |
+| `@AuraEnabled(cacheable=false)` | Mutation method correctly marked non-cacheable |
