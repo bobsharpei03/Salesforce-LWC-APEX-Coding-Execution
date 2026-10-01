@@ -13,15 +13,24 @@ The project serves as a **reference implementation** showcasing how to build com
 
 ## 🗂️ Project Structure
 
-┌──────────────────────────────────────────────────────────┐
-│                     wizardContainer                      │
-│                                                          │
-│  [Step 1]  →  [Step 2]  →  [Step 3]  →  [Review]         │
-│  Account      Contact      Preference      ↓             │
-│                                        Apex Call         │
-│                                            ↓             │
-│                                    Success / Error Toast │
-└──────────────────────────────────────────────────────────┘
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      wizardContainer                        │
+│                                                             │
+│   ┌────────┐    ┌────────┐    ┌────────────┐    ┌────────┐  │
+│   │ Step 1 │ →  │ Step 2 │ →  │  Step 3    │ →  │ Review │  │
+│   │Account │    │Contact │    │ Preference │    │        │  │
+│   └────────┘    └────────┘    └────────────┘    └───┬────┘  │
+│                                                     │       │
+│                                                     ▼       │
+│                                               Apex Call     │
+│                                                     │       │
+│                                                     ▼       │
+│                                          Success / Error    │
+│                                               Toast 🔔      │
+└─────────────────────────────────────────────────────────────┘
+```
+
 
 force-app/main/default/
 ├── classes/
@@ -51,8 +60,9 @@ public class WizardResult {
     @AuraEnabled public Id      contactId;
     @AuraEnabled public Id      preferenceId;
 }
+
  I applied the following rules to this project:
- 
+
 | Practice | Where Applied |
 | --- | --- |
 | `with sharing` on Apex | `WizardController` — enforces record-level security |
