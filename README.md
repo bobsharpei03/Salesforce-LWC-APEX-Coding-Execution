@@ -31,7 +31,7 @@ The project serves as a **reference implementation** showcasing how to build com
 └─────────────────────────────────────────────────────────────┘
 ```
 
-
+```
 force-app/main/default/
 ├── classes/
 │   ├── WizardController.cls          # Apex controller (entry point)
@@ -42,6 +42,7 @@ force-app/main/default/
 ├── wizardStep2/                  # Step 2 – Contact
 ├── wizardStep3/                  # Step 3 – Preference (with category picklist)
 └── wizardReview/                 # Review & submit step
+```
 
 Declared with sharing to respect org-level sharing rules
 
@@ -51,6 +52,7 @@ Performs a unit-of-work pattern: inserts Account → Contact (with AccountId) �
 
 Returns a WizardResult DTO rather than raw SObjects, giving the client a clean, versioned contract
 
+```
 Data Transfer Object — WizardResult
 
 public class WizardResult {
@@ -60,7 +62,7 @@ public class WizardResult {
     @AuraEnabled public Id      contactId;
     @AuraEnabled public Id      preferenceId;
 }
-
+```
  I applied the following rules to this project:
 
 | Practice | Where Applied |
