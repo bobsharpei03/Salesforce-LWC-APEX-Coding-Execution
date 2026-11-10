@@ -1,64 +1,72 @@
 public class AccountTriggerHandler {
+    /*
+trigger AccountSyncTrigger on Account (after insert, after update) {
+    //
+    AccountSyncService.handleAfterSave(Trigger.new, Trigger.oldMap);
+}*/
+    // Lets tests or data loads switch the handler off
+    @TestVisible private static Boolean bypassed = false;
+
+    public void beforeInsert(List<Account> newAccts) {
+        // Same-record work: defaults, normalization, validation (no DML)
+    }
+
+    public void beforeUpdate(List<Account> newAccts, Map<Id, Account> oldMap) {
+        // Same-record work on update
+    }
 
     public static void handleAfterInsert(List<Account> newAccounts) {
-        createOpportunityIfNeeded(newAccounts);
+    if(isBypassed()) {
+        return;
+    }
+        AccountOpportunityCreator.onAfterSave(newAccounts, null);
+        AccountErpSyncTrigger.onAfterSave(newAccounts, null);
     }
 
     public static void handleAfterUpdate(List<Account> newAccounts, Map<Id, Account> oldMap) {
-        List<Account> changedAccounts = new List<Account>();
-
-        for (Account newAcc : newAccounts) {
-
-            Account oldAcc = oldMap.get(newAcc.Id);
-
-            if (newAcc.Rating != oldAcc.Rating) {
-                changedAccounts.add(newAcc);
-            }
+        if(isBypassed()) {
+            return;
         }
-
-        createOpportunityIfNeeded(changedAccounts);
+        AccountOpportunityCreator.onAfterSave(newAccounts, oldMap);
+        AccountErpSyncTrigger.onAfterSave(newAccounts, oldMap);
     }
 
+    private static Boolean isBypassed() {
+        return bypassed || FeatureManagement.checkPermission('Bypass_Account_Triggers');
+    }
 
-    private static void createOpportunityIfNeeded(List<Account> accountsToProcess) {
-
-        if (accountsToProcess.isEmpty()) {
+    // Decides WHICH Accounts need a sync; the service decides how
+    /*private void requestErpSync(List<Account> newAccts, Map<Id, Account> oldMap) {
+        if (isBypassed()) {
             return;
         }
 
-        Map<Id, Account> acctsWithOpps = new Map<Id, Account>([
-                SELECT Id, Name,
-                    (SELECT Id FROM Opportunities)
-                FROM Account
-                WHERE Id IN :accountsToProcess
-                WITH USER_MODE
-            ]);
-
-        List<Opportunity> oppList = new List<Opportunity>();
-
-        for (Account acc : accountsToProcess) {
-
-            Account accountWithOpps = acctsWithOpps.get(acc.Id);
-
-            if (accountWithOpps.Opportunities.isEmpty()) {
-
-                oppList.add(
-                    new Opportunity(
-                        Name =
-                            acc.Name +
-                            ' Auto Trigger Opportunity',
-                        StageName = 'Prospecting',
-                        CloseDate =
-                            System.today().addMonths(1),
-                        AccountId = acc.Id
-                    )
-                );
+        Set<Id> changed = new Set<Id>();
+        for (Account a : newAccts) {
+            Account old = oldMap?.get(a.Id);
+            if (old == null
+                || a.Name != old.Name
+                || a.BillingCity != old.BillingCity) {
+                changed.add(a.Id);
             }
         }
 
-        if (!oppList.isEmpty()) {
-            insert as user oppList;
+        if (!changed.isEmpty()) {
+            AccountSyncService.requestSync(changed);
         }
+    }
+*/
+
+
+/*
+trigger AccountSyncTrigger on Account (after insert, after update) {
+    // [1] No change detection: every edit, even a typo fix, triggers a callout
+    for (Account a : Trigger.new) {
+        // [2] One future call per record: fails at 51 records ("Too many future calls: 51")
+        AccountSyncService.syncToErp(a.Id);
+    }
+*/
+}
     /*
     for (Database.SaveResult result : results) {
         if (result.isSuccess()) {
@@ -70,7 +78,6 @@ public class AccountTriggerHandler {
             }
         }
     }*/
-}
 /*
 trigger AddRelatedRecord on Account(after insert, after update) {
 
@@ -102,4 +109,3 @@ trigger AddRelatedRecord on Account(after insert, after update) {
     }
 }
 */
-}

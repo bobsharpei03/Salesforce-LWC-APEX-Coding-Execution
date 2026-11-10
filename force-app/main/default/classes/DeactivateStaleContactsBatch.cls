@@ -1,3 +1,14 @@
+/* 
+The most serious bug is that the Account count is decremented for every Contact
+processed, not just the ones deactivated, so every run corrupts the data. The
+start query has no filter, so it scans every Contact, and the date check skips
+Contacts with no activity at all, which are exactly the ones that should be deactivated.
+Inside execute there’s SOQL and DML in a loop, which fails within each 200-record chunk.
+I’d filter in the query, use Database.update with partial success and log failures,
+recalculate the count with an aggregate query instead of decrementing, and use
+Database.Stateful so finish can send a real summary.
+*/
+
 // Intentionally without sharing: an org-wide cleanup job must see every Contact,
 // regardless of who schedules it.
 public without sharing class DeactivateStaleContactsBatch

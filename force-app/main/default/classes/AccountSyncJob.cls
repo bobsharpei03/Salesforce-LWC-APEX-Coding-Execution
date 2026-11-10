@@ -1,69 +1,25 @@
-/*
-* IntegrationLogger stands in for a logging utility, typically one that writes to a custom
-* log object so failures can be reported and retried. The point is that failures are
-* recorded somewhere, not swallowed. One limit to mention if asked about scale: a transaction
-* allows 100 callouts, so a 200-record batch would exceed it. For large volumes, you’d split
-* the Ids across chained Queueable jobs, use Batch Apex with a small scope, or ask whether the
-* ERP supports a bulk endpoint that accepts many Accounts in one request.
-*/
+//
 public with sharing class AccountSyncJob implements Queueable, Database.AllowsCallouts {
 
-    private Set<Id> accountIds;
+    private List<Id> remainingIds;
 
-    public AccountSyncJob(Set<Id> accountIds) {
-        this.accountIds = accountIds;
+    public AccountSyncJob(List<Id> remainingIds) {
+        this.remainingIds = remainingIds;
     }
 
     public void execute(QueueableContext ctx) {
-        //
-        List<Account> toUpdate = new List<Account>();
-
-        for (Account a : [SELECT Id, Name, BillingCity, Erp_Id__c FROM Account
-                          WHERE Id IN :accountIds]) {
-
-            Boolean isNew = String.isBlank(a.Erp_Id__c);
-            HttpRequest req = buildRequest(a, isNew);
-
-            try {
-                HttpResponse res = new Http().send(req);
-                Integer status = res.getStatusCode();
-
-                if (status >= 200 && status < 300) {
-                    // Only a create returns a new ERP Id to store
-                    if (isNew) {
-                        Map<String, Object> body =
-                            (Map<String, Object>) JSON.deserializeUntyped(res.getBody());
-                        toUpdate.add(new Account(Id = a.Id, Erp_Id__c = (String) body.get('id')));
-                    }
-                } else {
-                    IntegrationLogger.logFailure(a.Id, status, res.getBody());
-                }
-            } catch (CalloutException e) {
-                IntegrationLogger.logFailure(a.Id, null, e.getMessage());
-            }
+        Integer size = AccountSyncService.chunkSize();
+        List<Id> chunk = new List<Id>();
+        List<Id> rest  = new List<Id>();
+        for (Integer i = 0; i < remainingIds.size(); i++) {
+            if (i < size) chunk.add(remainingIds[i]); else rest.add(remainingIds[i]);
         }
-        if (!toUpdate.isEmpty()) {
-            update toUpdate;   // one DML after all callouts
-        }
-    }
 
-    private HttpRequest buildRequest(Account a, Boolean isNew) {
-        //
-        HttpRequest req = new HttpRequest();
-        if (isNew) { // Named Credential holds URL + auth
-            req.setMethod('POST');                                       // create in ERP
-            req.setEndpoint('callout:ERP/api/accounts');
-        } else {
-            req.setMethod('PATCH');                                      // update existing ERP record
-            req.setEndpoint('callout:ERP/api/accounts/' + EncodingUtil.urlEncode(a.Erp_Id__c, 'UTF-8'));
+        AccountSyncService.syncChunk(chunk);
+
+        if (!rest.isEmpty() && !Test.isRunningTest()) {
+            System.enqueueJob(new AccountSyncJob(rest));
         }
-        req.setHeader('Content-Type', 'application/json');
-        req.setTimeout(20000);
-        req.setBody(JSON.serialize(new Map<String, Object>{
-            'name' => a.Name,
-            'city' => a.BillingCity
-        }));
-        return req;
     }
 }
 /*
