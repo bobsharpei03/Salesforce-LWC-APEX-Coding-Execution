@@ -28,20 +28,29 @@ public with sharing class CustomerOnboardingService {
 
     @AuraEnabled
     public static List<CustomerResult> createCustomers(List<CustomerInput> customers) {
-        //
+        //validate List CustomerInput is not null or empty
         List<CustomerResult> results = new List<CustomerResult>();
         if (customers == null || customers.isEmpty()) {
             return results;
         }
         // 1. Validate input; build Accounts only for valid rows
-        List<Account> accounts = new List<Account>();
+        List<Account> accounts = new List<Account>();       
         List<Integer> accountRows = new List<Integer>();   // accounts[i] belongs to customers[accountRows[i]]
-
+         /*
+         * Index mapping or Parallel list: each filtered record keeps a pointer back to
+         * its position in the original list. This is the most descriptive term.
+         */
         for (Integer i = 0; i < customers.size(); i++) {
             CustomerInput c = customers[i];
-            CustomerResult r = new CustomerResult(i + 1);
+            CustomerResult r = new CustomerResult(i + 1); // converting loop index to row number
             results.add(r);
-
+            /*
+             * checking for a blank company name or last name. accountRows solves the problem that validation
+             * creates: once invalid rows are skipped, accounts is shorter than customers, so their
+             * positions no longer line up. accountRows records which customer row each Account came from,
+             * so every SaveResult can be matched back to the right customer and reported in the right
+             * row’s result.
+             */
             if (String.isBlank(c.companyName) || String.isBlank(c.lastName)) {
                 r.errorMessage = 'Company name and last name are required.';
                 continue;
@@ -75,6 +84,9 @@ public with sharing class CustomerOnboardingService {
 
         // 4. Insert Contacts with partial success
         List<Database.SaveResult> conResults = Database.insert(contacts, false, AccessLevel.USER_MODE);
+        /* 
+         * Create a List of hafl creater records that will be deleted
+        */
         List<Account> halfCreated = new List<Account>();
 
         for (Integer i = 0; i < conResults.size(); i++) {
